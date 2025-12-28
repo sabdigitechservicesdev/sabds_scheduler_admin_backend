@@ -8,6 +8,7 @@ dotenv.config();
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import { errorHandler } from './utils/errorHandler.js';
+import peakListRoutes from './routes/pickListRoutes.js'
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
+app.use('/api/peak-list', peakListRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
