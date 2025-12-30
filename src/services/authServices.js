@@ -90,6 +90,10 @@ static async login(identifier, password) {
     throw new Error('User not found');
   }
 
+    if (!admin || admin.is_deactivated === 1) {
+    throw new Error('User are Deactivated');
+  }
+
   // 2️⃣ Status check
   if (admin.status_code !== 'ACT') {
     throw new Error(`Account is ${admin.status_name.toLowerCase()}`);

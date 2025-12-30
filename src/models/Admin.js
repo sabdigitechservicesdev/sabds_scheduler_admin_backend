@@ -69,9 +69,9 @@ class Admin {
   }
 
   // Admin model
+
 static async findByLoginIdentifier(identifier) {
-  const [rows] = await pool.query(
-    `
+  const query = `
     SELECT 
       ad.admin_id,
       ad.admin_name,
@@ -80,20 +80,21 @@ static async findByLoginIdentifier(identifier) {
       ad.email,
       ad.role_code,
       ad.status_code,
-      r.role_name,
+      ar.role_name,  
       s.status_name,
       ac.password,
-      ac.is_deleted
+      ac.is_deleted,
+      ac.is_deactivated
     FROM admin_details ad
     JOIN admin_credentials ac ON ac.admin_id = ad.admin_id
-    JOIN roles r ON r.role_code = ad.role_code
+    JOIN admin_roles ar ON ar.role_code = ad.role_code  
     JOIN status s ON s.status_code = ad.status_code
     WHERE (ac.email = ? OR ac.admin_name = ?)
+      AND ac.is_deleted = 0
     LIMIT 1
-    `,
-    [identifier, identifier]
-  );
-
+  `;
+  
+  const [rows] = await pool.execute(query, [identifier, identifier]);
   return rows[0];
 }
 
