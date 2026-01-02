@@ -1,5 +1,5 @@
 import { formatResponse, successResponse, errorResponse } from '../utils/responseFormatter.js';
-import profileServices from '../services/profileServices.js'
+import profileServices from '../services/profile.services.js'
 
 
 class profileController {
