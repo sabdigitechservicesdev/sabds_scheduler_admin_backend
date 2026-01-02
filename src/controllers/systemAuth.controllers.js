@@ -1,10 +1,10 @@
-import SystemAuthService from '../services/systemAuthServices.js';
+import systemAuthService from '../services/systemAuth.services.js';
 import { formatResponse, successResponse, errorResponse } from '../utils/responseFormatter.js';
 
-class SystemAuthController {
+class systemAuthController {
   static async register(req, res) {
     try {
-      const result = await SystemAuthService.register(req.body);
+      const result = await systemAuthService.register(req.body);
 
       // Extract data from result
       const userData = result.user || result.data;
@@ -45,7 +45,7 @@ class SystemAuthController {
   static async login(req, res) {
     try {
       const { identifier, password } = req.body;
-      const result = await SystemAuthService.login(identifier, password);
+      const result = await systemAuthService.login(identifier, password);
 
       // Extract data from result
       const userData = result.user || result.data;
@@ -92,15 +92,15 @@ class SystemAuthController {
   // SystemAuthController.js - add this method
 static async forgotPassword(req, res) {
   try {
-    const { email, new_password } = req.body;
+    const { identifier, new_password } = req.body;
     
-    if (!email || !new_password) {
+    if (!identifier || !new_password) {
       return res.status(400).json(
-        errorResponse('Email and new password are required', null, null)
+        errorResponse('Email or username and new password are required', null, null)
       );
     }
 
-    const result = await SystemAuthService.forgotPassword(email, new_password);
+    const result = await systemAuthService.forgotPassword(identifier, new_password);
 
     const response = {
       status: 1,
@@ -136,4 +136,4 @@ static async forgotPassword(req, res) {
 
 }
 
-export default SystemAuthController;
+export default systemAuthController;

@@ -34,9 +34,6 @@ export const SystemRegisterValidator = [
     .trim()
     .isLength({ max: 50 }).withMessage('Middle name too long'),
 
-  body('role_code')
-    .optional()
-    .isIn(['SA', 'AD']).withMessage('Invalid role code'),
 
   body('area').optional().trim(),
   body('city').optional().trim(),

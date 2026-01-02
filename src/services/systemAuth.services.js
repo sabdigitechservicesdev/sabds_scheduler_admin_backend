@@ -1,9 +1,9 @@
 import { SystemAdminDetails, SystemAdminCredentials, SystemAdminAddress } from "../models/index.js"
-import TokenService from './tokenService.js';
+import TokenService from './token.service.js';
 import pool from '../config/database.js';
 
 
-class SystemAuthService {
+class systemAuthService {
   static async register(adminData) {
     const {
       admin_name, first_name, middle_name, last_name, email,
@@ -184,74 +184,59 @@ class SystemAuthService {
   //     };
   //   }
 // SystemAuthService.js - add this method
-static async forgotPassword(email, newPassword) {
-  const connection = await pool.getConnection();
-  
-  try {
-    await connection.beginTransaction();
+  static async forgotPassword(identifier, newPassword) {
+    // 1️⃣ First, find the user using the same method as login
+    const admin = await SystemAdminDetails.findByLoginIdentifier(identifier);
 
-    // 1️⃣ Check if user exists and get details with join
-    const [users] = await connection.execute(
-      `SELECT 
-        ad.admin_id,
-        ad.status_code,
-        ac.is_deleted,
-        ac.is_deactivated
-       FROM system_admin_details ad
-       JOIN system_admin_credentials ac ON ac.admin_id = ad.admin_id
-       WHERE ad.email = ?`,
-      [email]
-    );
-
-    const user = users[0];
-
-    // 2️⃣ Validate user existence and status
-    if (!user) {
+    // 2️⃣ Validate user existence and status - EXACTLY like login
+    if (!admin || admin.is_deleted === 1) {
       throw new Error('User not found');
     }
 
-    if (user.is_deleted === 1) {
-      throw new Error('Account is deleted');
+    if (!admin || admin.is_deactivated === 1) {
+      throw new Error('User are Deactivated');
     }
 
-    if (user.is_deactivated === 1) {
-      throw new Error('Account is deactivated');
+    // 3️⃣ Status check - same as login
+    if (admin.status_code !== 'ACT') {
+      throw new Error(`Account is ${admin.status_name.toLowerCase()}`);
     }
 
-    if (user.status_code !== 'ACT') {
-      throw new Error(`Account is not active`);
+    const connection = await pool.getConnection();
+    
+    try {
+      await connection.beginTransaction();
+
+      // 4️⃣ Hash the new password
+      const hashedPassword = await TokenService.hashPassword(newPassword);
+
+      // 5️⃣ Update password in credentials table
+      const [updateResult] = await connection.execute(
+        `UPDATE system_admin_credentials 
+         SET password = ?, updated_at = CURRENT_TIMESTAMP 
+         WHERE admin_id = ?`,
+        [hashedPassword, admin.admin_id]
+      );
+
+      if (updateResult.affectedRows === 0) {
+        throw new Error('Failed to update password');
+      }
+
+      await connection.commit();
+
+      return {
+        success: true,
+        message: 'Password reset successful'
+      };
+
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
-
-    // 3️⃣ Hash the new password
-    const hashedPassword = await TokenService.hashPassword(newPassword);
-
-    // 4️⃣ Update password in credentials table
-    const [updateResult] = await connection.execute(
-      `UPDATE system_admin_credentials 
-       SET password = ?, updated_at = CURRENT_TIMESTAMP 
-       WHERE admin_id = ?`,
-      [hashedPassword, user.admin_id]
-    );
-
-    if (updateResult.affectedRows === 0) {
-      throw new Error('Failed to update password');
-    }
-
-    await connection.commit();
-
-    return {
-      success: true,
-      message: 'Password reset successful'
-    };
-
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
   }
-}
 
 }
 
-export default SystemAuthService;
+export default systemAuthService;

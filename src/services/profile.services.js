@@ -1,6 +1,6 @@
 
 import { SystemAdminDetails, SystemAdminCredentials, SystemAdminAddress } from "../models/index.js"
-import TokenService from './tokenService.js';
+import TokenService from './token.service.js';
 import pool from '../config/database.js';
 
 
