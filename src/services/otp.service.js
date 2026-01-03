@@ -1,4 +1,3 @@
-// services/otp.service.js
 import crypto from 'crypto';
 import pool from '../config/database.js';
 
@@ -10,7 +9,7 @@ class OTPService {
     this.resendCooldown = parseInt(process.env.OTP_RESEND_COOLDOWN_SECONDS) || 60;
   }
 
-  async generateOTP(adminId, email, purpose = 'verification') {
+  async generateOTP(adminId, email) {
     const connection = await pool.getConnection();
 
     try {
@@ -21,9 +20,9 @@ class OTPService {
       // Check if OTP exists and is still valid
       const [existingOTPs] = await connection.execute(
         `SELECT * FROM system_otps 
-         WHERE admin_id = ? AND email = ? AND purpose = ? 
+         WHERE admin_id = ? AND email = ? 
          AND expires_at > NOW() AND is_verified = 0`,
-        [adminId, email, purpose]
+        [adminId, email]
       );
 
       if (existingOTPs.length > 0) {
@@ -39,17 +38,17 @@ class OTPService {
         // Mark old OTPs as expired
         await connection.execute(
           `UPDATE system_otps SET expires_at = NOW() 
-           WHERE admin_id = ? AND email = ? AND purpose = ? AND is_verified = 0`,
-          [adminId, email, purpose]
+           WHERE admin_id = ? AND email = ? AND is_verified = 0`,
+          [adminId, email]
         );
       }
 
       // Check attempt count
       const [attempts] = await connection.execute(
         `SELECT COUNT(*) as count FROM system_otps 
-         WHERE admin_id = ? AND email = ? AND purpose = ? 
+         WHERE admin_id = ? AND email = ? 
          AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)`,
-        [adminId, email, purpose]
+        [adminId, email]
       );
 
       if (attempts[0].count >= this.maxAttempts) {
@@ -58,9 +57,9 @@ class OTPService {
 
       // Insert new OTP
       await connection.execute(
-        `INSERT INTO system_otps (admin_id, email, otp_code, purpose, expires_at) 
-         VALUES (?, ?, ?, ?, ?)`,
-        [adminId, email, otp, purpose, expiresAt]
+        `INSERT INTO system_otps (admin_id, email, otp_code, expires_at) 
+         VALUES (?, ?, ?, ?)`,
+        [adminId, email, otp, expiresAt]
       );
 
       return otp;
@@ -71,7 +70,7 @@ class OTPService {
     }
   }
 
-  async verifyOTP(adminId, email, otp, purpose = 'verification') {
+  async verifyOTP(adminId, email, otp) {
     const connection = await pool.getConnection();
 
     try {
@@ -79,8 +78,8 @@ class OTPService {
       const [otps] = await connection.execute(
         `SELECT * FROM system_otps 
          WHERE admin_id = ? AND email = ? AND otp_code = ? 
-         AND purpose = ? AND expires_at > NOW() AND is_verified = 0`,
-        [adminId, email, otp, purpose]
+         AND expires_at > NOW() AND is_verified = 0`,
+        [adminId, email, otp]
       );
 
       if (otps.length === 0) {
@@ -100,8 +99,7 @@ class OTPService {
         success: true,
         message: 'OTP verified successfully',
         adminId,
-        email,
-        purpose
+        email
       };
     } catch (error) {
       throw error;

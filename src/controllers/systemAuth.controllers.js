@@ -1,5 +1,5 @@
 import systemAuthService from '../services/systemAuth.services.js';
-import { formatResponse, successResponse, errorResponse } from '../utils/responseFormatter.js';
+import { errorResponse } from '../utils/responseFormatter.js';
 
 class systemAuthController {
   static async register(req, res) {
@@ -124,9 +124,6 @@ class systemAuthController {
       } else if (error.message.includes('not active')) {
         statusCode = 403;
         errorMessage = error.message;
-      } else if (error.message === 'Please verify your email first') {
-        statusCode = 403;
-        errorMessage = error.message;
       }
 
       return res.status(statusCode).json(
@@ -135,9 +132,10 @@ class systemAuthController {
     }
   }
 
+  // SIMPLIFIED OTP METHODS
   static async sendOTP(req, res) {
     try {
-      const { identifier, purpose = 'verification' } = req.body;
+      const { identifier } = req.body;
 
       if (!identifier) {
         return res.status(400).json(
@@ -145,15 +143,7 @@ class systemAuthController {
         );
       }
 
-      // Validate purpose
-      const validPurposes = ['verification', 'reset', 'login', 'general'];
-      if (!validPurposes.includes(purpose)) {
-        return res.status(400).json(
-          errorResponse('Invalid purpose. Must be one of: verification, reset, login, general', null, null)
-        );
-      }
-
-      const result = await systemAuthService.sendOTP(identifier, purpose);
+      const result = await systemAuthService.sendOTP(identifier);
 
       const response = {
         status: 1,
@@ -161,7 +151,6 @@ class systemAuthController {
         error: null,
         data: {
           email: result.email,
-          purpose: result.purpose,
           expiresIn: parseInt(process.env.OTP_EXPIRY_MINUTES || 5),
           expiresInMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || 5)
         }
@@ -190,9 +179,6 @@ class systemAuthController {
       } else if (error.message === 'Failed to send OTP email') {
         statusCode = 502;
         errorMessage = 'Failed to send email. Please try again later.';
-      } else if (error.message === 'Invalid email or username format') {
-        statusCode = 400;
-        errorMessage = error.message;
       }
 
       return res.status(statusCode).json(
@@ -203,19 +189,11 @@ class systemAuthController {
 
   static async verifyOTP(req, res) {
     try {
-      const { identifier, otp, purpose = 'verification' } = req.body;
+      const { identifier, otp } = req.body;
 
       if (!identifier || !otp) {
         return res.status(400).json(
           errorResponse('Identifier and OTP are required', null, null)
-        );
-      }
-
-      // Validate purpose
-      const validPurposes = ['verification', 'reset', 'login', 'general'];
-      if (!validPurposes.includes(purpose)) {
-        return res.status(400).json(
-          errorResponse('Invalid purpose. Must be one of: verification, reset, login, general', null, null)
         );
       }
 
@@ -226,7 +204,7 @@ class systemAuthController {
         );
       }
 
-      const result = await systemAuthService.verifyOTP(identifier, otp, purpose);
+      const result = await systemAuthService.verifyOTP(identifier, otp);
 
       const response = {
         status: 1,
@@ -235,18 +213,10 @@ class systemAuthController {
         data: {
           adminId: result.adminId,
           email: result.email,
-          purpose: result.purpose,
           verified: true,
           verifiedAt: new Date().toISOString()
         }
       };
-
-      // If purpose is reset, return a reset token
-      if (purpose === 'reset') {
-        // Generate a short-lived reset token
-        const resetToken = await systemAuthService.generateResetToken(result.adminId);
-        response.data.resetToken = resetToken;
-      }
 
       return res.status(200).json(response);
     } catch (error) {
@@ -264,9 +234,6 @@ class systemAuthController {
         errorMessage = error.message;
       } else if (error.message.includes('Account is')) {
         statusCode = 403;
-        errorMessage = error.message;
-      } else if (error.message === 'Invalid email or username format') {
-        statusCode = 400;
         errorMessage = error.message;
       }
 
