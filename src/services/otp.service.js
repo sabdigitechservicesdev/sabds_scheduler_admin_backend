@@ -85,11 +85,10 @@ class OTPService {
       const deviceId = deviceInfo?.deviceId || null;
       const deviceName = deviceInfo?.deviceName || null;
 
-      // Check if OTP exists for same device
+      // FIRST: Check for existing OTPs for this device (whether verified or not, expired or not)
       const [existingOTPs] = await connection.execute(
         `SELECT * FROM system_otps 
-         WHERE admin_id = ? AND email = ? AND device_id = ?
-         AND expires_at > NOW() AND is_verified = 0`,
+         WHERE admin_id = ? AND email = ? AND device_id = ?`,
         [adminId, email, deviceId]
       );
 
@@ -97,16 +96,25 @@ class OTPService {
         const lastOTP = existingOTPs[0];
         const timeSinceLast = Date.now() - new Date(lastOTP.created_at).getTime();
 
-        // Check resend cooldown
-        if (timeSinceLast < this.resendCooldown * 1000) {
-          const waitTime = Math.ceil((this.resendCooldown * 1000 - timeSinceLast) / 1000);
-          throw new Error(`Please wait ${waitTime} seconds before requesting new OTP`);
+        // Check resend cooldown only for unverified and not-expired OTPs
+        const [activeOTPs] = await connection.execute(
+          `SELECT * FROM system_otps 
+           WHERE admin_id = ? AND email = ? AND device_id = ?
+           AND expires_at > NOW() AND is_verified = 0`,
+          [adminId, email, deviceId]
+        );
+
+        if (activeOTPs.length > 0) {
+          if (timeSinceLast < this.resendCooldown * 1000) {
+            const waitTime = Math.ceil((this.resendCooldown * 1000 - timeSinceLast) / 1000);
+            throw new Error(`Please wait ${waitTime} seconds before requesting new OTP`);
+          }
         }
 
-        // Mark old OTPs for same device as expired
+        // DELETE ALL existing OTPs for this device (whether verified or not)
         await connection.execute(
-          `UPDATE system_otps SET expires_at = NOW() 
-           WHERE admin_id = ? AND email = ? AND device_id = ? AND is_verified = 0`,
+          `DELETE FROM system_otps 
+           WHERE admin_id = ? AND email = ? AND device_id = ?`,
           [adminId, email, deviceId]
         );
       }
