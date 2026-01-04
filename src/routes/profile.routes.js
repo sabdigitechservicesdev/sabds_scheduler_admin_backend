@@ -7,7 +7,7 @@ const router = express.Router();
 
 
 // Protected routes
-router.get('/system',
+router.get('/profile-details',
   authenticateToken,
   profileController.getProfile
 );

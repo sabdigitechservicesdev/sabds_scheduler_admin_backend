@@ -1,7 +1,5 @@
 import { SystemAdminDetails, SystemAdminCredentials, SystemAdminAddress } from "../models/index.js"
 import TokenService from './token.service.js';
-import OTPService from './otp.service.js';
-import EmailService from './email.service.js';
 import pool from '../config/database.js';
 
 class systemAuthService {
@@ -59,9 +57,6 @@ class systemAuthService {
 
       await connection.commit();
 
-      // Generate tokens
-      const tokens = this.generateTokens(adminId, email, admin_name, role_code);
-
       return {
         success: true,
         message: 'Registration successful',
@@ -69,7 +64,6 @@ class systemAuthService {
           adminId,
           admin_name,
           email,
-          tokens
         }
       };
 
@@ -122,12 +116,7 @@ class systemAuthService {
       data: {
         adminId: admin.admin_id,
         admin_name: admin.admin_name,
-        first_name: admin.first_name,
-        last_name: admin.last_name,
         email: admin.email,
-        role: admin.role_code,
-        role_name: admin.role_name,
-        status: admin.status_code,
         tokens
       }
     };

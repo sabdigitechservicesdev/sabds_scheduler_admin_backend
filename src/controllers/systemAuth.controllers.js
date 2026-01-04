@@ -1,6 +1,5 @@
 import systemAuthService from '../services/systemAuth.services.js';
-import OTPService from '../services/otp.service.js';
-import { errorResponse } from '../utils/responseFormatter.js';
+import { successResponse, errorResponse, successResponseWithToken } from '../utils/responseFormatter.js';
 
 class systemAuthController {
   static async register(req, res) {
@@ -9,28 +8,15 @@ class systemAuthController {
 
       // Extract data from result
       const userData = result.user || result.data;
-      const tokens = userData?.tokens || {};
-      const { tokens: _, ...userWithoutTokens } = userData;
 
-      // Always include all fields even if null
-      const response = {
-        status: 1,
-        message: 'Registration successful',
-        error: null,
-        data: userWithoutTokens,
-        token: tokens.accessToken ? {
-          accessToken: tokens.accessToken,
-          tokenType: tokens.tokenType || 'Bearer'
-        } : null
-      };
-
-      return res.status(201).json(response);
+      return res.status(201).json(
+        successResponse('Registration successful', userData)
+      );
     } catch (error) {
       console.error('Registration error:', error);
 
       let statusCode = 500;
       let errorMessage = 'Registration failed';
-      let technicalError = process.env.NODE_ENV === 'development' ? error.message : null;
 
       if (error.message.includes('already')) {
         statusCode = 409;
@@ -38,7 +24,10 @@ class systemAuthController {
       }
 
       return res.status(statusCode).json(
-        errorResponse(errorMessage, technicalError, null)
+        errorResponse(
+          errorMessage,
+          process.env.NODE_ENV === 'development' ? error.message : null
+        )
       );
     }
   }
@@ -53,27 +42,30 @@ class systemAuthController {
       const tokens = userData?.tokens || result.tokens || {};
       const { tokens: _, ...userWithoutTokens } = userData || {};
 
-      // Always include all fields even if null
-      const response = {
-        status: 1,
-        message: 'Login successful',
-        error: null,
-        data: userWithoutTokens,
-        token: tokens.accessToken ? {
-          accessToken: tokens.accessToken,
-          tokenType: tokens.tokenType || 'Bearer',
-          ...(tokens.refreshToken && { refreshToken: tokens.refreshToken }),
-          ...(tokens.expiresIn && { expiresIn: tokens.expiresIn })
-        } : null
-      };
+      if (tokens.accessToken) {
+        const tokenProps = {};
+        if (tokens.refreshToken) tokenProps.refreshToken = tokens.refreshToken;
+        if (tokens.expiresIn) tokenProps.expiresIn = tokens.expiresIn;
 
-      return res.status(200).json(response);
+        return res.status(200).json(
+          successResponseWithToken(
+            'Login successful',
+            userWithoutTokens,
+            tokens.accessToken,
+            tokens.tokenType || 'Bearer',
+            tokenProps
+          )
+        );
+      }
+
+      return res.status(200).json(
+        successResponse('Login successful', userWithoutTokens)
+      );
     } catch (error) {
       console.error('Login error:', error.message);
 
       let statusCode = 500;
       let errorMessage = 'Login failed';
-      let technicalError = process.env.NODE_ENV === 'development' ? error.message : null;
 
       if (
         error.message === 'Invalid credentials' ||
@@ -85,7 +77,10 @@ class systemAuthController {
       }
 
       return res.status(statusCode).json(
-        errorResponse(errorMessage, technicalError, null)
+        errorResponse(
+          errorMessage,
+          process.env.NODE_ENV === 'development' ? error.message : null
+        )
       );
     }
   }
@@ -96,26 +91,20 @@ class systemAuthController {
 
       if (!identifier || !new_password) {
         return res.status(400).json(
-          errorResponse('Email or username and new password are required', null, null)
+          errorResponse('Email or username and new password are required')
         );
       }
 
       const result = await systemAuthService.forgotPassword(identifier, new_password);
 
-      const response = {
-        status: 1,
-        message: result.message,
-        error: null,
-        data: null
-      };
-
-      return res.status(200).json(response);
+      return res.status(200).json(
+        successResponse(result.message)
+      );
     } catch (error) {
       console.error('Forgot password error:', error.message);
 
       let statusCode = 500;
       let errorMessage = 'Password reset failed';
-      let technicalError = process.env.NODE_ENV === 'development' ? error.message : null;
 
       if (error.message === 'User not found' ||
         error.message === 'Account is deactivated' ||
@@ -128,12 +117,13 @@ class systemAuthController {
       }
 
       return res.status(statusCode).json(
-        errorResponse(errorMessage, technicalError, null)
+        errorResponse(
+          errorMessage,
+          process.env.NODE_ENV === 'development' ? error.message : null
+        )
       );
     }
   }
-
-
 }
 
 export default systemAuthController;
