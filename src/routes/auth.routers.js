@@ -1,6 +1,6 @@
 // routes/systemAuth.routes.js
 import express from 'express';
-import { authRateLimiter } from '../config/rateLimitConfig.js';
+import { otpRateLimiter } from '../config/rateLimitConfig.js';
 import { SendOTPValidator, VerifyOTPValidator } from '../validators/otp.validators.js';
 import validateRequest from '../middleware/validation.middleware.js';
 import deviceInfoMiddleware from '../middleware/deviceInfo.middleware.js';
@@ -10,15 +10,15 @@ const router = express.Router();
 
 // Add deviceInfoMiddleware to OTP routes
 router.post('/send-otp',
-  authRateLimiter,
-  deviceInfoMiddleware, 
+  otpRateLimiter,
+  deviceInfoMiddleware,
   SendOTPValidator,
   validateRequest,
   authController.sendOTP
 );
 
 router.post('/verify-otp',
-  authRateLimiter,
+  otpRateLimiter,
   deviceInfoMiddleware, 
   VerifyOTPValidator,
   validateRequest,

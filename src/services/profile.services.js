@@ -1,8 +1,5 @@
 
-import { SystemAdminDetails, SystemAdminCredentials, SystemAdminAddress } from "../models/index.js"
-import TokenService from './token.service.js';
-import pool from '../config/database.js';
-
+import { SystemAdminDetails } from "../models/index.js"
 
 class profileServices{
       static async getProfile(adminId) {

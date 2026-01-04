@@ -1,9 +1,9 @@
 import OTPService from './otp.service.js';
 import EmailService from './email.service.js';
-import { SystemAdminDetails, SystemAdminCredentials, SystemAdminAddress } from "../models/index.js"
+import { SystemAdminDetails } from "../models/index.js"
 
-class authServices{
-      static async sendOTP(identifier, deviceInfo = null) {
+class authServices {
+  static async sendOTP(identifier, deviceInfo = null) {
     try {
       console.log('sendOTP called with:', { identifier, deviceInfo });
 
