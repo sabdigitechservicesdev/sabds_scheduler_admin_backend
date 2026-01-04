@@ -3,14 +3,13 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-dotenv.config();
-
 import systemAuthRoutes from './routes/systemAuth.routes.js';
 import authRoutes from './routes/auth.routers.js';
 import { errorHandler } from './utils/errorHandler.js';
 import peakListRoutes from './routes/pickList.routes.js'
 import profileRoutes from './routes/profile.routes.js';
 
+dotenv.config();
 const app = express();
 
 // Security middleware
@@ -59,7 +58,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/peak-list', peakListRoutes);
 app.use('/api/system-admin/auth', systemAuthRoutes);
-app.use('/api/profile-details',profileRoutes);
+app.use('/api/profile',profileRoutes);
 app.use('/api/auth',authRoutes);
 
 // ✅ FIX: 404 handler - Use a function instead of '*'
