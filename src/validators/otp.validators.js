@@ -1,4 +1,3 @@
-// validators/otp.validators.js
 import { body } from 'express-validator';
 
 export const SendOTPValidator = [
@@ -12,11 +11,7 @@ export const SendOTPValidator = [
         throw new Error('Invalid email or username format');
       }
       return true;
-    }),
-
-  body('purpose')
-    .optional()
-    .isIn(['verification', 'reset', 'login', 'general']).withMessage('Invalid purpose')
+    })
 ];
 
 export const VerifyOTPValidator = [
@@ -37,9 +32,10 @@ export const VerifyOTPValidator = [
     .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
     .isNumeric().withMessage('OTP must contain only numbers'),
 
-  body('purpose')
+  body('processId')
     .optional()
-    .isIn(['verification', 'reset', 'login', 'general']).withMessage('Invalid purpose')
+    .notEmpty().withMessage('Process ID must not be empty if provided')
+    .isString().withMessage('Process ID must be a string')
 ];
 
 export default {
