@@ -6,7 +6,6 @@ import validateRequest from '../middleware/validation.middleware.js';
 
 const router = express.Router();
 
-// Public routes with strict rate limiting
 router.post('/register',
   authRateLimiter,
   SystemRegisterValidator,

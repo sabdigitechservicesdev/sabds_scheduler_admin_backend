@@ -1,8 +1,8 @@
 
 import { SystemAdminDetails } from "../models/index.js"
 
-class profileServices{
-      static async getProfile(adminId) {
+class profileServices {
+  static async getProfile(adminId) {
     const admin = await SystemAdminDetails.findById(adminId);
 
     if (!admin) {
@@ -16,6 +16,7 @@ class profileServices{
       middle_name: admin.middle_name,
       last_name: admin.last_name,
       email: admin.email,
+      phone_number: admin.phone_number,
       role: admin.role_code,
       role_name: admin.role_name,
       status: admin.status_code,

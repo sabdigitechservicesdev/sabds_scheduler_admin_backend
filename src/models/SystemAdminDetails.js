@@ -44,7 +44,7 @@ class SystemAdminDetails {
   static async create(adminData) {
     const {
       admin_name, first_name, middle_name, last_name, email, phone_number,
-      role_code = 'SE', status_code = 'ACT'
+      role_code, status_code
     } = adminData;
 
     const connection = await pool.getConnection();

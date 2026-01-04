@@ -44,7 +44,7 @@ class systemAuthService {
         last_name,
         email,
         phone_number,
-        role_code: role_code || 'AD'
+        role_code: role_code
       });
 
       const adminId = adminResult.adminId;

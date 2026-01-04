@@ -32,5 +32,4 @@ class SystemAdminCredentials {
   }
 }
 
-// ✅ ADD THIS:
 export default SystemAdminCredentials;

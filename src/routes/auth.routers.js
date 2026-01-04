@@ -8,7 +8,6 @@ import authController from '../controllers/auth.controller.js';
 
 const router = express.Router();
 
-// Add deviceInfoMiddleware to OTP routes
 router.post('/send-otp',
   otpRateLimiter,
   deviceInfoMiddleware,
@@ -19,7 +18,7 @@ router.post('/send-otp',
 
 router.post('/verify-otp',
   otpRateLimiter,
-  deviceInfoMiddleware, 
+  deviceInfoMiddleware,
   VerifyOTPValidator,
   validateRequest,
   authController.verifyOTP
