@@ -1,4 +1,3 @@
-// middleware/deviceInfo.middleware.js
 import OTPService from '../services/otp.service.js';
 
 const deviceInfoMiddleware = (req, res, next) => {

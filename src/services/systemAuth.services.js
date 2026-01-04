@@ -5,20 +5,27 @@ import pool from '../config/database.js';
 class systemAuthService {
   static async register(adminData) {
     const {
-      admin_name, first_name, middle_name, last_name, email,
+      admin_name, first_name, middle_name, last_name, email, phone_number,
       password, area, city, state, pincode, role_code
     } = adminData;
 
-    // Check if email already exists
-    const existingAdmin = await SystemAdminDetails.findByEmail(email);
-    if (existingAdmin) {
-      throw new Error('Email already registered');
-    }
 
     // Check if admin_name already exists
     const existingAdminName = await SystemAdminDetails.findByAdminName(admin_name);
     if (existingAdminName) {
       throw new Error('Admin name already taken');
+    }
+
+    // Check if phone_number already exists
+    const existingPhone = await SystemAdminDetails.checkPhoneNumberExists(phone_number);
+    if (existingPhone) {
+      throw new Error('Phone number already registered');
+    }
+
+    // Check if email already exists
+    const existingEmail = await SystemAdminDetails.findByEmail(email);
+    if (existingEmail) {
+      throw new Error('Email already registered');
     }
 
     // Hash password
@@ -36,7 +43,8 @@ class systemAuthService {
         middle_name,
         last_name,
         email,
-        role_code: role_code || 'AD'
+        phone_number,
+        role_code: role_code
       });
 
       const adminId = adminResult.adminId;
@@ -45,6 +53,7 @@ class systemAuthService {
       await SystemAdminCredentials.create(adminId, {
         admin_name,
         email,
+        phone_number,
         password: hashedPassword
       });
 
@@ -64,6 +73,7 @@ class systemAuthService {
           adminId,
           admin_name,
           email,
+          phone_number
         }
       };
 
@@ -117,6 +127,7 @@ class systemAuthService {
         adminId: admin.admin_id,
         admin_name: admin.admin_name,
         email: admin.email,
+        phone_number: admin.phone_number,
         tokens
       }
     };
@@ -190,7 +201,6 @@ class systemAuthService {
       connection.release();
     }
   }
-
 
 }
 
