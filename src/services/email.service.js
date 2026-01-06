@@ -11,7 +11,7 @@ class EmailService {
       user: process.env.SMTP_USER,
       fromEmail: process.env.SMTP_FROM_EMAIL
     });
-    
+
     // Create transporter with error handling
     try {
       this.transporter = nodemailer.createTransport({
@@ -33,7 +33,7 @@ class EmailService {
   async sendOTP(email, otp, deviceName = 'your device') {
     try {
       console.log('sendOTP called:', { email, otp, deviceName });
-      
+
       if (!this.transporter) {
         console.error('Email transporter not available');
         throw new Error('Email service not configured');
@@ -51,20 +51,20 @@ class EmailService {
       };
 
       console.log('Sending email with options:', mailOptions);
-      
+
       // Verify connection first
       await this.transporter.verify();
       console.log('SMTP connection verified');
-      
+
       const info = await this.transporter.sendMail(mailOptions);
       console.log(`Email sent to ${email}:`, info.messageId);
       console.log('SMTP response:', info.response);
-      
+
       return true;
     } catch (error) {
       console.error('Email sending failed:', error.message);
       console.error('Full error:', error);
-      
+
       // Specific error handling
       if (error.code === 'EAUTH') {
         console.error('SMTP Authentication failed. Check username/password.');
@@ -73,7 +73,7 @@ class EmailService {
       } else if (error.code === 'ENOTFOUND') {
         console.error('SMTP Host not found.');
       }
-      
+
       throw new Error('Failed to send OTP email');
     }
   }

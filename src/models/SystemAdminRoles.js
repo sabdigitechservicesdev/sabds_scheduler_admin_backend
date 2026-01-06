@@ -17,5 +17,4 @@ class SystemAdminRole {
   }
 }
 
-// ✅ ADD THIS:
 export default SystemAdminRole;

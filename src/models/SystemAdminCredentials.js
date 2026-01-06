@@ -2,12 +2,12 @@ import pool from '../config/database.js';
 
 class SystemAdminCredentials {
   static async create(adminId, credentials) {
-    const { admin_name, email, password } = credentials;
+    const { admin_name, email, phone_number, password } = credentials;
 
     const [result] = await pool.execute(
-      `INSERT INTO system_admin_credentials (admin_id, admin_name, email, password) 
-       VALUES (?, ?, ?, ?)`,
-      [adminId, admin_name, email, password]
+      `INSERT INTO system_admin_credentials (admin_id, admin_name, email, phone_number, password) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [adminId, admin_name, email, phone_number, password]
     );
 
     return { credentialId: result.insertId };
@@ -32,5 +32,4 @@ class SystemAdminCredentials {
   }
 }
 
-// ✅ ADD THIS:
 export default SystemAdminCredentials;

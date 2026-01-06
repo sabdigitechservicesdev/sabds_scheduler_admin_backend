@@ -2,13 +2,14 @@ import { body } from 'express-validator';
 
 export const SendOTPValidator = [
   body('identifier')
-    .notEmpty().withMessage('Email or username is required')
+    .notEmpty().withMessage('Email, username or phone number is required')
     .custom(value => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const usernameRegex = /^[a-zA-Z0-9_]{3,50}$/;
+      const phoneRegex = /^\d{10}$/;
 
-      if (!emailRegex.test(value) && !usernameRegex.test(value)) {
-        throw new Error('Invalid email or username format');
+      if (!emailRegex.test(value) && !usernameRegex.test(value) && !phoneRegex.test(value)) {
+        throw new Error('Invalid email, username or phone number format');
       }
       return true;
     })
@@ -16,13 +17,14 @@ export const SendOTPValidator = [
 
 export const VerifyOTPValidator = [
   body('identifier')
-    .notEmpty().withMessage('Email or username is required')
+    .notEmpty().withMessage('Email, username or phone number is required')
     .custom(value => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const usernameRegex = /^[a-zA-Z0-9_]{3,50}$/;
+      const phoneRegex = /^\d{10}$/;
 
-      if (!emailRegex.test(value) && !usernameRegex.test(value)) {
-        throw new Error('Invalid email or username format');
+      if (!emailRegex.test(value) && !usernameRegex.test(value) && !phoneRegex.test(value)) {
+        throw new Error('Invalid email, username or phone number format');
       }
       return true;
     }),
@@ -34,8 +36,9 @@ export const VerifyOTPValidator = [
 
   body('processId')
     .optional()
-    .notEmpty().withMessage('Process ID must not be empty if provided')
-    .isString().withMessage('Process ID must be a string')
+    .notEmpty().withMessage('Process ID must not be empty')
+    .isLength({ min: 6, max: 6 }).withMessage('Process ID must be 6 digits')
+    .isNumeric().withMessage('Process ID must contain only numbers')
 ];
 
 export default {

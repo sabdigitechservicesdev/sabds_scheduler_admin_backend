@@ -58,8 +58,8 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/peak-list', peakListRoutes);
 app.use('/api/system-admin/auth', systemAuthRoutes);
-app.use('/api/profile',profileRoutes);
-app.use('/api/auth',authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/auth', authRoutes);
 
 // ✅ FIX: 404 handler - Use a function instead of '*'
 app.use((req, res, next) => {
