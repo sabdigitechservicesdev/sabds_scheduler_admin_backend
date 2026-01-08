@@ -53,9 +53,9 @@ class SystemAdminDetails {
 
       const [result] = await connection.execute(
         `INSERT INTO system_admin_details 
-         (admin_name, first_name, middle_name, last_name, email, phone_number, role_code, status_code) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [admin_name, first_name, middle_name, last_name, email, phone_number, role_code, status_code]
+         (admin_name, first_name, middle_name, last_name, email, phone_number, role_code) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [admin_name, first_name, middle_name, last_name, email, phone_number, role_code]
       );
 
       await connection.commit();
@@ -78,7 +78,6 @@ class SystemAdminDetails {
         ad.email,
         ad.phone_number,
         ad.role_code,
-        ad.status_code,
         ar.role_name,  
         s.status_name,
         ac.password,
