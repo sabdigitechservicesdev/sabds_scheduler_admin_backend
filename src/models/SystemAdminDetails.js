@@ -1,6 +1,7 @@
 import pool from '../config/database.js';
 
 class SystemAdminDetails {
+ 
   static async findByEmail(email) {
     const [rows] = await pool.execute(
       `SELECT ad.admin_id, ad.admin_name, ad.first_name, ad.middle_name, ad.last_name, 
@@ -10,17 +11,22 @@ class SystemAdminDetails {
        LEFT JOIN system_admin_credentials ac ON ad.admin_id = ac.admin_id
        LEFT JOIN system_admin_roles ar ON ad.role_code = ar.role_code
        LEFT JOIN status as2 ON ad.status_code = as2.status_code
-       WHERE ad.email = ?`,
+       WHERE ad.email = ? 
+         AND ac.is_deleted = 0`,
       [email]
     );
     return rows[0];
   }
 
+
   static async findByAdminName(adminName) {
     const [rows] = await pool.execute(
-      `SELECT admin_id, admin_name, email, phone_number, role_code, status_code 
-       FROM system_admin_details 
-       WHERE admin_name = ?`,
+      `SELECT ad.admin_id, ad.admin_name, ad.email, ad.phone_number, ad.role_code, ad.status_code,
+              ac.is_deleted
+       FROM system_admin_details ad
+       LEFT JOIN system_admin_credentials ac ON ad.admin_id = ac.admin_id
+       WHERE ad.admin_name = ? 
+         AND ac.is_deleted = 0`,
       [adminName]
     );
     return rows[0];
@@ -96,12 +102,46 @@ class SystemAdminDetails {
     return rows[0];
   }
 
+  // Registration-এর জন্য: শুধু active users check করবে
   static async checkPhoneNumberExists(phoneNumber) {
     const [rows] = await pool.execute(
-      `SELECT admin_id FROM system_admin_details WHERE phone_number = ?`,
+      `SELECT ad.admin_id 
+       FROM system_admin_details ad
+       LEFT JOIN system_admin_credentials ac ON ad.admin_id = ac.admin_id
+       WHERE ad.phone_number = ? 
+         AND ac.is_deleted = 0`,
       [phoneNumber]
     );
     return rows[0] || null;
+  }
+
+  // OPTIONAL: Registration check-এর জন্য comprehensive method
+  static async checkRegistrationAvailability(email, adminName, phoneNumber) {
+    const [rows] = await pool.execute(
+      `SELECT 
+        ad.email,
+        ad.admin_name,
+        ad.phone_number,
+        ac.is_deleted
+       FROM system_admin_details ad
+       LEFT JOIN system_admin_credentials ac ON ad.admin_id = ac.admin_id
+       WHERE (ad.email = ? OR ad.admin_name = ? OR ad.phone_number = ?)
+         AND ac.is_deleted = 0`,
+      [email, adminName, phoneNumber]
+    );
+    
+    const errors = [];
+    
+    rows.forEach(row => {
+      if (row.email === email) errors.push('Email already registered');
+      if (row.admin_name === adminName) errors.push('Admin name already taken');
+      if (row.phone_number === phoneNumber) errors.push('Phone number already registered');
+    });
+    
+    return {
+      available: errors.length === 0,
+      errors: errors.length > 0 ? errors : null
+    };
   }
 
 }
