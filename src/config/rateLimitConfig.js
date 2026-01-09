@@ -113,7 +113,7 @@ export const authCategoryRateLimiter = rateLimit({
 export const apiRateLimiter = rateLimit({
   windowMs: process.env.API_RATE_LIMIT_WINDOW_MS
     ? parseInt(process.env.API_RATE_LIMIT_WINDOW_MS)
-    : 15 * 60 * 1000, // 15 minutes default
+    : 5 * 60 * 1000, // 5 minutes default
   max: process.env.API_RATE_LIMIT_MAX_REQUESTS
     ? parseInt(process.env.API_RATE_LIMIT_MAX_REQUESTS)
     : 100, // 100 requests per window per endpoint

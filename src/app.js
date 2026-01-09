@@ -1,75 +1,102 @@
-import express from 'express';
-import helmet from 'helmet';
-import cors from 'cors';
-import morgan from 'morgan';
-import dotenv from 'dotenv';
-import systemAuthRoutes from './routes/systemAuth.routes.js';
-import authRoutes from './routes/auth.routers.js';
-import { errorHandler } from './utils/errorHandler.js';
-import peakListRoutes from './routes/pickList.routes.js'
-import profileRoutes from './routes/profile.routes.js';
+import express from "express";
+import helmet from "helmet";
+import cors from "cors";
+import morgan from "morgan";
+import dotenv from "dotenv";
+
+import systemAuthRoutes from "./routes/systemAuth.routes.js";
+import authRoutes from "./routes/auth.routers.js";
+import peakListRoutes from "./routes/pickList.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
+
+import { errorHandler } from "./utils/errorHandler.js";
+import { logApi } from "./utils/apiLogger.js";
+import deviceInfoMiddleware from "./middleware/deviceInfo.middleware.js";
 
 dotenv.config();
-const app = express();
 
-// Security middleware
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+/* -------------------- Security -------------------- */
 app.use(helmet());
 
-// CORS configuration - MOVED TO TOP
+/* -------------------- CORS -------------------- */
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+  origin: (origin, callback) => {
     if (!origin) return callback(null, true);
 
     const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5173', // Vite dev server
-      process.env.CORS_ORIGIN
+      "http://localhost:3000",
+      "http://localhost:5173",
+      process.env.CORS_ORIGIN,
     ].filter(Boolean);
 
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === "development") {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
 
-// Logging
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-
-// Body parsers
+/* -------------------- Body Parsers -------------------- */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+/* -------------------- DEVICE INFO MIDDLEWARE -------------------- */
+app.use(deviceInfoMiddleware);
+
+/* -------------------- API LOGGING -------------------- */
+app.use(logApi);
+
+/* -------------------- Morgan Console Logs -------------------- */
+app.use(
+  morgan(
+    (tokens, req, res) =>
+      [
+        tokens.method(req, res),
+        tokens.url(req, res),
+        tokens.status(req, res),
+        tokens["response-time"](req, res) + " ms",
+      ].join(" "),
+    {
+      stream: { write: (message) => console.log(message.trim()) },
+    }
+  )
+);
+
+/* -------------------- Health Check -------------------- */
+app.get("/health", (req, res) => {
   res.status(200).json({
-    status: 'OK',
+    status: "OK",
     timestamp: new Date().toISOString(),
-    service: 'Scheduler Auth API'
+    service: "Scheduler Auth API",
   });
 });
 
-// API routes
-app.use('/api/peak-list', peakListRoutes);
-app.use('/api/system-admin/auth', systemAuthRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/auth', authRoutes);
+/* -------------------- Routes -------------------- */
+app.use("/api/peak-list", peakListRoutes);
+app.use("/api/system-admin/auth", systemAuthRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/auth", authRoutes);
 
-// ✅ FIX: 404 handler - Use a function instead of '*'
-app.use((req, res, next) => {
+/* -------------------- 404 Handler -------------------- */
+app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.originalUrl} not found`
+    message: `Route ${req.originalUrl} not found`,
   });
 });
 
-// Global error handler
+/* -------------------- Global Error Handler -------------------- */
 app.use(errorHandler);
 
-export default app;
+/* -------------------- Start Server -------------------- */
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
