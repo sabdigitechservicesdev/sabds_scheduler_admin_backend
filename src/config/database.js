@@ -1,6 +1,6 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
-import OTPService from '../services/otp.service.js';
+import OTPService from '../services/systemOTP.service.js';
 
 dotenv.config();
 

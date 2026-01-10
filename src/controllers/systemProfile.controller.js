@@ -1,5 +1,5 @@
 import { successResponse, errorResponse } from '../utils/responseFormatter.js';
-import profileServices from '../services/profile.services.js';
+import profileServices from '../services/systemProfile.service.js';
 
 class profileController {
   static async getProfile(req, res) {

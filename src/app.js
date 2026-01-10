@@ -6,8 +6,8 @@ import dotenv from "dotenv";
 
 import systemAuthRoutes from "./routes/systemAuth.routes.js";
 import systemAuthOTPRoutes from "./routes/systemAuthOTP.routes.js";
-import peakListRoutes from "./routes/systemPickList.routes.js";
-import profileRoutes from "./routes/profile.routes.js";
+import systemPeakListRoutes from "./routes/systemPickList.routes.js";
+import systemProfileRoutes from "./routes/systemProfile.routes.js";
 
 import { errorHandler } from "./utils/errorHandler.js";
 import { logApi } from "./utils/apiLogger.js";
@@ -80,10 +80,10 @@ app.get("/health", (req, res) => {
 });
 
 /* -------------------- Routes -------------------- */
-app.use("/api/peak-list", peakListRoutes);
+app.use("/api/system-admin/peak-list", systemPeakListRoutes);
 app.use("/api/system-admin/auth", systemAuthRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/auth", systemAuthOTPRoutes);
+app.use("/api/system-admin/profile", systemProfileRoutes);
+app.use("/api/system-admin/otp", systemAuthOTPRoutes);
 
 /* -------------------- 404 Handler -------------------- */
 app.use((req, res) => {

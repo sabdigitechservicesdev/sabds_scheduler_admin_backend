@@ -1,5 +1,5 @@
-import OTPService from './otp.service.js';
-import EmailService from './email.service.js';
+import OTPService from './systemOTP.service.js';
+import EmailService from './systemEmail.service.js';
 import { SystemAdminDetails } from "../models/index.js"
 
 class authServices {

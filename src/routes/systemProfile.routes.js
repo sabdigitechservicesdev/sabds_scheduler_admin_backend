@@ -1,8 +1,8 @@
 import express from 'express';
 import { apiLimits } from '../config/rateLimitConfig.js';
 import { authenticateToken } from '../middleware/systemAuth.middleware.js';
-import profileController from '../controllers/profile.controller.js';
-import { validateProfileRequest } from '../validators/profile.validators.js';
+import profileController from '../controllers/systemProfile.controller.js';
+import { validateProfileRequest } from '../validators/systemProfile.validators.js';
 
 const router = express.Router();
 
