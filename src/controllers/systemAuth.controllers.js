@@ -1,5 +1,5 @@
 import systemAuthService from '../services/systemAuth.service.js';
-import { successResponse, errorResponse, successResponseWithToken } from '../utils/responseFormatter.js';
+import { successResponse, errorResponse, successResponseWithEncryptedToken } from '../utils/responseFormatter.js';
 
 class systemAuthController {
   static async register(req, res) {
@@ -41,19 +41,13 @@ class systemAuthController {
       const userData = result.user || result.data;
       const tokens = result.tokens || {};
 
-      // If we have tokens, return with token format
+      // If we have tokens, return with encrypted token format
       if (tokens.accessToken) {
-        const tokenProps = {};
-        if (tokens.refreshToken) tokenProps.refreshToken = tokens.refreshToken;
-        if (tokens.expiresIn) tokenProps.expiresIn = tokens.expiresIn;
-
         return res.status(200).json(
-          successResponseWithToken(
+          successResponseWithEncryptedToken(
             result.message || 'Login successful',
             userData,
-            tokens.accessToken,
-            tokens.tokenType || 'Bearer',
-            tokenProps
+            tokens.accessToken  // This is the encrypted token
           )
         );
       }

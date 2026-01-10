@@ -51,6 +51,25 @@ export const successResponseWithToken = (message, data = null, accessToken, toke
 };
 
 /**
+ * Success response with encrypted token
+ * For authentication with encrypted tokens
+ * @param {string} message - Success message (e.g., "Login successful")
+ * @param {any} data - Response data (default: null)
+ * @param {string} encryptedToken - Encrypted token
+ * @returns {Object} Formatted success response with encrypted token
+ */
+export const successResponseWithEncryptedToken = (message, data = null, encryptedToken) => {
+  // Return with encryptedToken in data field for backward compatibility
+  return {
+    status: 1,
+    message: message || '',
+    error: null,
+    data: data,
+    encryptedToken: encryptedToken
+  };
+};
+
+/**
  * Error response helper
  * For failed operations
  * @param {string} message - User-friendly error message (e.g., "Failed to fetch data")
@@ -66,5 +85,6 @@ export default {
   formatResponse,
   successResponse,
   successResponseWithToken,
+  successResponseWithEncryptedToken,
   errorResponse
 };
