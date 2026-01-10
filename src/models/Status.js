@@ -1,16 +1,16 @@
 import pool from '../config/database.js';
 
-class AdminStatus {
+class Status {
   static async findAll() {
     const [rows] = await pool.execute(
-      `SELECT * FROM admin_status`
+      `SELECT * FROM status`
     );
     return rows;
   }
 
   static async findByCode(statusCode) {
     const [rows] = await pool.execute(
-      `SELECT * FROM admin_status WHERE status_code = ?`,
+      `SELECT * FROM status WHERE status_code = ?`,
       [statusCode]
     );
     return rows[0];
@@ -18,4 +18,4 @@ class AdminStatus {
 }
 
 // ✅ ADD THIS:
-export default AdminStatus;
+export default Status;

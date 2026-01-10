@@ -1,21 +1,20 @@
 import pool from '../config/database.js';
 
-class AdminRole {
+class SystemAdminRole {
   static async findAll() {
     const [rows] = await pool.execute(
-      `SELECT * FROM admin_roles`
+      `SELECT * FROM system_admin_roles`
     );
     return rows;
   }
 
   static async findByCode(roleCode) {
     const [rows] = await pool.execute(
-      `SELECT * FROM admin_roles WHERE role_code = ?`,
+      `SELECT * FROM system_admin_roles WHERE role_code = ?`,
       [roleCode]
     );
     return rows[0];
   }
 }
 
-// ✅ ADD THIS:
-export default AdminRole;
+export default SystemAdminRole;

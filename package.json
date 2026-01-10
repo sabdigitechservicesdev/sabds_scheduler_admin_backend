@@ -3,14 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Professional Authentication API for Scheduler",
-  "main": "server.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
     "test": "jest"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -24,8 +22,9 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "mysql2": "^3.15.3",
-    "nodeman": "^1.1.2",
+    "nodemailer": "^7.0.12",
     "nodemon": "^3.1.11",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }
