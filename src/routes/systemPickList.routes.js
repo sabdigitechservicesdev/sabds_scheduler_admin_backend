@@ -4,15 +4,10 @@ import { apiLimits } from '../config/rateLimitConfig.js';
 
 const router = express.Router();
 
-
-
 router.get('/admin-roles',
   apiLimits,
   PicklistController.getAllAdminRoles
 );
-
-
-
 
 
 export default router;
