@@ -3,7 +3,7 @@ import { otpLimits } from '../config/rateLimitConfig.js';
 import { SendOTPValidator, VerifyOTPValidator } from '../validators/otp.validators.js';
 import validateRequest from '../middleware/validation.middleware.js';
 import deviceInfoMiddleware from '../middleware/deviceInfo.middleware.js';
-import authController from '../controllers/auth.controller.js';
+import authController from '../controllers/systemAuthOTP.controller.js';
 
 const router = express.Router();
 
