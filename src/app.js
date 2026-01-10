@@ -70,8 +70,38 @@ app.use(
   )
 );
 
+/* -------------------- LOG CATEGORY MIDDLEWARES -------------------- */
+// Clear, self-explanatory middleware names
+const logToSystem = (req, res, next) => {
+  req.logCategory = 'system';
+  next();
+};
+
+const logToClient = (req, res, next) => {
+  req.logCategory = 'client';
+  next();
+};
+
+const logToPartner = (req, res, next) => {
+  req.logCategory = 'partner';
+  next();
+};
+
+const logToPublic = (req, res, next) => {
+  req.logCategory = 'public';
+  next();
+};
+
+// Generic version for custom categories
+const logToCategory = (categoryName) => {
+  return (req, res, next) => {
+    req.logCategory = categoryName;
+    next();
+  };
+};
+
 /* -------------------- Health Check -------------------- */
-app.get("/health", (req, res) => {
+app.get("/health", logToSystem, (req, res) => {
   res.status(200).json({
     status: "OK",
     timestamp: new Date().toISOString(),
@@ -79,11 +109,41 @@ app.get("/health", (req, res) => {
   });
 });
 
-/* -------------------- Routes -------------------- */
-app.use("/api/system-admin/peak-list", systemPeakListRoutes);
-app.use("/api/system-admin/auth", systemAuthRoutes);
-app.use("/api/system-admin/profile", systemProfileRoutes);
-app.use("/api/system-admin/otp", systemAuthOTPRoutes);
+/* -------------------- System Admin Routes -------------------- */
+app.use("/api/system-admin/peak-list",
+  logToSystem,  // Clear: Logs go to system category
+  systemPeakListRoutes
+);
+
+app.use("/api/system-admin/auth",
+  logToSystem,  // Clear: Logs go to system category
+  systemAuthRoutes
+);
+
+app.use("/api/system-admin/profile",
+  logToSystem,  // Clear: Logs go to system category
+  systemProfileRoutes
+);
+
+app.use("/api/system-admin/otp",
+  logToSystem,  // Clear: Logs go to system category
+  systemAuthOTPRoutes
+);
+
+/* -------------------- Future Routes Examples -------------------- */
+// Example 1: Client routes (when you create them)
+// app.use("/api/client/auth", logToClient, clientAuthRoutes);
+// app.use("/api/client/profile", logToClient, clientProfileRoutes);
+
+// Example 2: Public API routes
+// app.use("/api/public/data", logToPublic, publicDataRoutes);
+
+// Example 3: Partner API routes
+// app.use("/api/partner/v1", logToPartner, partnerRoutes);
+
+// Example 4: Special categories
+// app.use("/api/analytics", logToCategory('analytics'), analyticsRoutes);
+// app.use("/api/internal", logToCategory('internal'), internalRoutes);
 
 /* -------------------- 404 Handler -------------------- */
 app.use((req, res) => {
