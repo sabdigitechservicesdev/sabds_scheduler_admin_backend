@@ -37,11 +37,11 @@ class systemAuthController {
       const { identifier, password } = req.body;
       const result = await systemAuthService.login(identifier, password);
 
-      // Extract data from result
+      // Extract user data and tokens
       const userData = result.user || result.data;
-      const tokens = userData?.tokens || result.tokens || {};
-      const { tokens: _, ...userWithoutTokens } = userData || {};
+      const tokens = result.tokens || {};
 
+      // If we have tokens, return with token format
       if (tokens.accessToken) {
         const tokenProps = {};
         if (tokens.refreshToken) tokenProps.refreshToken = tokens.refreshToken;
@@ -49,8 +49,8 @@ class systemAuthController {
 
         return res.status(200).json(
           successResponseWithToken(
-            'Login successful',
-            userWithoutTokens,
+            result.message || 'Login successful',
+            userData,
             tokens.accessToken,
             tokens.tokenType || 'Bearer',
             tokenProps
@@ -58,8 +58,9 @@ class systemAuthController {
         );
       }
 
+      // If no tokens, return regular success response
       return res.status(200).json(
-        successResponse('Login successful', userWithoutTokens)
+        successResponse(result.message || 'Login successful', userData)
       );
     } catch (error) {
       console.error('Login error:', error.message);
@@ -111,7 +112,7 @@ class systemAuthController {
         error.message === 'Account is deleted') {
         statusCode = 404;
         errorMessage = error.message;
-      } else if (error.message.includes('not active')) {
+      } else if (error.message.includes('not active') || error.message.includes('Account is')) {
         statusCode = 403;
         errorMessage = error.message;
       }

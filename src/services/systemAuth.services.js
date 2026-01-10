@@ -9,7 +9,6 @@ class systemAuthService {
       password, area, city, state, pincode, role_code
     } = adminData;
 
-
     // Check if admin_name already exists
     const existingAdminName = await SystemAdminDetails.findByAdminName(admin_name);
     if (existingAdminName) {
@@ -90,16 +89,18 @@ class systemAuthService {
 
     // 1️⃣ User not found OR soft deleted
     if (!admin || admin.is_deleted === 1) {
-      throw new Error('User not found');
+      throw new Error('Invalid credentials');
     }
 
     if (admin.is_deactivated === 1) {
       throw new Error('Account is deactivated');
     }
 
-    // 2️⃣ Status check
+    // 2️⃣ Status check - FIXED: Check for 'ACT' status code
     if (admin.status_code !== 'ACT') {
-      throw new Error(`Account is ${admin.status_name.toLowerCase()}`);
+      // Get the actual status name for error message
+      const statusMsg = admin.status_name ? admin.status_name.toLowerCase() : 'inactive';
+      throw new Error(`Account is ${statusMsg}`);
     }
 
     // 3️⃣ Password verify
@@ -123,13 +124,16 @@ class systemAuthService {
     return {
       success: true,
       message: 'Login successful',
-      data: {
+      user: {  // Changed from 'data' to 'user' to match your controller
         adminId: admin.admin_id,
-        admin_name: admin.admin_name,
+        adminName: admin.admin_name,
+        firstName: admin.first_name,
+        middleName: admin.middle_name,
+        lastName: admin.last_name,
         email: admin.email,
-        phone_number: admin.phone_number,
-        tokens
-      }
+        phoneNumber: admin.phone_number,
+      },
+      tokens: tokens  // Tokens at root level
     };
   }
 
@@ -161,7 +165,7 @@ class systemAuthService {
     }
 
     if (admin.status_code !== 'ACT') {
-      throw new Error(`Account is ${admin.status_name.toLowerCase()}`);
+      throw new Error(`Account is ${admin.status_name ? admin.status_name.toLowerCase() : 'inactive'}`);
     }
 
     // Validate password strength
