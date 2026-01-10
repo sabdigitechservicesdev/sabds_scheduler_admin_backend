@@ -1,5 +1,6 @@
 import { SystemAdminDetails, SystemAdminCredentials, SystemAdminAddress } from "../models/index.js"
 import TokenService from './token.service.js';
+import EncryptionService from './encryption.service.js';
 import pool from '../config/database.js';
 
 class systemAuthService {
@@ -114,40 +115,33 @@ class systemAuthService {
     }
 
     // 4️⃣ Generate tokens
-    const tokens = this.generateTokens(
-      admin.admin_id,
-      admin.email,
-      admin.admin_name,
-      admin.role_code
-    );
+    const accessToken = TokenService.generateAccessToken({
+      adminId: admin.admin_id,
+      email: admin.email,
+      adminName: admin.admin_name,
+      role: admin.role_code
+    });
 
+    // 5️⃣ Encrypt the token
+    const encryptedToken = EncryptionService.encryptTokenForResponse(accessToken);
+
+    // Return format that matches controller expectations
     return {
       success: true,
       message: 'Login successful',
-      user: {  // Changed from 'data' to 'user' to match your controller
-        adminId: admin.admin_id,
-        adminName: admin.admin_name,
-        firstName: admin.first_name,
-        middleName: admin.middle_name,
-        lastName: admin.last_name,
+      user: {
+        admin_id: admin.admin_id,
+        admin_name: admin.admin_name,
+        first_name: admin.first_name,
+        middle_name: admin.middle_name,
+        last_name: admin.last_name,
         email: admin.email,
-        phoneNumber: admin.phone_number,
+        phone_number: admin.phone_number,
       },
-      tokens: tokens  // Tokens at root level
-    };
-  }
-
-  static generateTokens(adminId, email, adminName, role) {
-    const accessToken = TokenService.generateAccessToken({
-      adminId,
-      email,
-      adminName,
-      role
-    });
-
-    return {
-      accessToken,
-      tokenType: 'Bearer'
+      tokens: {  // Keep tokens structure for backward compatibility
+        accessToken: encryptedToken,  // Now contains encrypted token
+        tokenType: 'Bearer'
+      }
     };
   }
 

@@ -1,5 +1,6 @@
-
 import { SystemAdminDetails } from "../models/index.js"
+import TokenService from './token.service.js';
+import EncryptionService from './encryption.service.js';
 
 class profileServices {
   static async getProfile(adminId) {
@@ -30,6 +31,23 @@ class profileServices {
       created_at: admin.created_at,
       updated_at: admin.updated_at
     };
+  }
+
+  static async decryptToken(encryptedToken) {
+    try {
+      const decryptedToken = EncryptionService.decryptTokenFromResponse(encryptedToken);
+
+      // Verify it's a valid JWT token
+      const decoded = TokenService.verifyAccessToken(decryptedToken);
+
+      return {
+        success: true,
+        originalToken: decryptedToken,
+        decoded: decoded
+      };
+    } catch (error) {
+      throw new Error('Invalid or expired token');
+    }
   }
 }
 

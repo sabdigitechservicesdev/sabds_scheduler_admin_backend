@@ -13,13 +13,13 @@ export const ProfileValidator = {
           throw new Error('Authorization header must start with Bearer');
         }
         const token = value.substring(7);
-        
+
         // Basic JWT format validation (3 parts separated by dots)
         const parts = token.split('.');
         if (parts.length !== 3) {
           throw new Error('Invalid JWT token format');
         }
-        
+
         // Check if token parts are valid base64
         try {
           parts.forEach(part => {
@@ -28,12 +28,12 @@ export const ProfileValidator = {
         } catch (error) {
           throw new Error('Invalid JWT token encoding');
         }
-        
+
         // Optional: Add token length validation
         if (token.length < 50 || token.length > 2000) {
           throw new Error('Invalid token length');
         }
-        
+
         return true;
       }),
 
@@ -47,7 +47,7 @@ export const ProfileValidator = {
           'email', 'phone_number', 'role', 'status', 'address',
           'created_at', 'updated_at'
         ];
-        
+
         const requestedFields = value.split(',');
         for (const field of requestedFields) {
           if (!allowedFields.includes(field.trim())) {
@@ -56,7 +56,7 @@ export const ProfileValidator = {
         }
         return true;
       }),
-    
+
     query('include')
       .optional()
       .isIn(['all', 'basic', 'detailed']).withMessage('Include must be one of: all, basic, detailed')
@@ -129,15 +129,15 @@ export const ProfileValidator = {
           'first_name', 'last_name', 'middle_name',
           'phone_number', 'area', 'city', 'state', 'pincode'
         ];
-        
-        const hasUpdateField = updatableFields.some(field => 
+
+        const hasUpdateField = updatableFields.some(field =>
           req.body[field] !== undefined
         );
-        
+
         if (!hasUpdateField) {
           throw new Error('At least one field must be provided for update');
         }
-        
+
         return true;
       })
   ],
@@ -170,4 +170,21 @@ export const validateProfileRequest = (validatorType) => {
   ];
 };
 
-export default ProfileValidator;
+// Add DecryptTokenValidator using express-validator
+export const DecryptTokenValidator = [
+  body('encryptedToken')
+    .notEmpty().withMessage('Encrypted token is required')
+    .isString().withMessage('Encrypted token must be a string')
+    .custom(value => {
+      // Check if it contains a dot (encryptedToken.iv format)
+      if (!value.includes('.')) {
+        throw new Error('Invalid encrypted token format');
+      }
+      return true;
+    })
+];
+
+export default {
+  ProfileValidator,
+  DecryptTokenValidator,
+};
