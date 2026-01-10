@@ -1,4 +1,4 @@
-import authServices from "../services/auth.services.js";
+import authServices from "../services/systemAuthOTP.services.js";
 import { successResponse, errorResponse } from '../utils/responseFormatter.js';
 
 class authController {

@@ -5,8 +5,8 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 
 import systemAuthRoutes from "./routes/systemAuth.routes.js";
-import authRoutes from "./routes/auth.routers.js";
-import peakListRoutes from "./routes/pickList.routes.js";
+import systemAuthOTPRoutes from "./routes/systemAuthOTP.routes.js";
+import peakListRoutes from "./routes/systemPickList.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 
 import { errorHandler } from "./utils/errorHandler.js";
@@ -83,7 +83,7 @@ app.get("/health", (req, res) => {
 app.use("/api/peak-list", peakListRoutes);
 app.use("/api/system-admin/auth", systemAuthRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", systemAuthOTPRoutes);
 
 /* -------------------- 404 Handler -------------------- */
 app.use((req, res) => {
