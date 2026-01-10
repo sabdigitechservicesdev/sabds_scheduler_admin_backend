@@ -38,6 +38,7 @@ class profileController {
         successResponseWithToken(
           'Token decrypted successfully',
           {
+            originalToken: result.originalToken,
             decoded: result.decoded
           },
           result.originalToken,  // This is the original JWT token
