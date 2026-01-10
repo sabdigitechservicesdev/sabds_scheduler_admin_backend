@@ -1,4 +1,4 @@
-import OTPService from '../services/otp.service.js';
+import OTPService from '../services/systemOTP.service.js';
 
 const deviceInfoMiddleware = (req, res, next) => {
   // Extract device info from request

@@ -1,4 +1,4 @@
-import systemAuthService from '../services/systemAuth.services.js';
+import systemAuthService from '../services/systemAuth.service.js';
 import { successResponse, errorResponse, successResponseWithToken } from '../utils/responseFormatter.js';
 
 class systemAuthController {
