@@ -1,7 +1,7 @@
 import pool from '../config/database.js';
 
 class SystemAdminDetails {
- 
+
   static async findByEmail(email) {
     const [rows] = await pool.execute(
       `SELECT ad.admin_id, ad.admin_name, ad.first_name, ad.middle_name, ad.last_name, 
@@ -17,7 +17,6 @@ class SystemAdminDetails {
     );
     return rows[0];
   }
-
 
   static async findByAdminName(adminName) {
     const [rows] = await pool.execute(
@@ -59,9 +58,9 @@ class SystemAdminDetails {
 
       const [result] = await connection.execute(
         `INSERT INTO system_admin_details 
-         (admin_name, first_name, middle_name, last_name, email, phone_number, role_code) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [admin_name, first_name, middle_name, last_name, email, phone_number, role_code]
+         (admin_name, first_name, middle_name, last_name, email, phone_number, role_code, status_code) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [admin_name, first_name, middle_name, last_name, email, phone_number, role_code, 'ACT'] // Default to ACT for active
       );
 
       await connection.commit();
@@ -80,10 +79,12 @@ class SystemAdminDetails {
         ad.admin_id,
         ad.admin_name,
         ad.first_name,
+        ad.middle_name,
         ad.last_name,
         ad.email,
         ad.phone_number,
         ad.role_code,
+        ad.status_code,
         ar.role_name,  
         s.status_name,
         ac.password,
@@ -93,7 +94,7 @@ class SystemAdminDetails {
       JOIN system_admin_credentials ac ON ac.admin_id = ad.admin_id
       JOIN system_admin_roles ar ON ar.role_code = ad.role_code  
       JOIN status s ON s.status_code = ad.status_code
-      WHERE (ac.email = ? OR ac.admin_name = ? OR ac.phone_number = ?)
+      WHERE (ad.email = ? OR ad.admin_name = ? OR ad.phone_number = ?)
         AND ac.is_deleted = 0
       LIMIT 1
     `;
@@ -102,7 +103,6 @@ class SystemAdminDetails {
     return rows[0];
   }
 
-  // Registration-এর জন্য: শুধু active users check করবে
   static async checkPhoneNumberExists(phoneNumber) {
     const [rows] = await pool.execute(
       `SELECT ad.admin_id 
@@ -113,35 +113,6 @@ class SystemAdminDetails {
       [phoneNumber]
     );
     return rows[0] || null;
-  }
-
-  // OPTIONAL: Registration check-এর জন্য comprehensive method
-  static async checkRegistrationAvailability(email, adminName, phoneNumber) {
-    const [rows] = await pool.execute(
-      `SELECT 
-        ad.email,
-        ad.admin_name,
-        ad.phone_number,
-        ac.is_deleted
-       FROM system_admin_details ad
-       LEFT JOIN system_admin_credentials ac ON ad.admin_id = ac.admin_id
-       WHERE (ad.email = ? OR ad.admin_name = ? OR ad.phone_number = ?)
-         AND ac.is_deleted = 0`,
-      [email, adminName, phoneNumber]
-    );
-    
-    const errors = [];
-    
-    rows.forEach(row => {
-      if (row.email === email) errors.push('Email already registered');
-      if (row.admin_name === adminName) errors.push('Admin name already taken');
-      if (row.phone_number === phoneNumber) errors.push('Phone number already registered');
-    });
-    
-    return {
-      available: errors.length === 0,
-      errors: errors.length > 0 ? errors : null
-    };
   }
 
 }
