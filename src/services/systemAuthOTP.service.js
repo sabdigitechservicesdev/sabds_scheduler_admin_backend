@@ -3,11 +3,49 @@ import EmailService from './systemEmail.service.js';
 import { SystemAdminDetails } from "../models/index.js"
 
 class systemAuthOTPService {
-  static async sendOTP(identifier, deviceInfo = null) {
+  static async sendOTP(identifier, deviceInfo = null, isUnregistered = false) {
     try {
-      console.log('sendOTP called with:', { identifier, deviceInfo });
+      console.log('sendOTP called with:', { identifier, deviceInfo, isUnregistered });
 
-      // Find user by identifier (email or username)
+      // For unregistered users - STRICT EMAIL VALIDATION FLOW
+      if (isUnregistered === true) {
+        console.log('Processing OTP request for unregistered user');
+
+        // STRICT VALIDATION: Must be a valid email for unregistered users
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(identifier)) {
+          throw new Error('For unregistered users, identifier must be a valid email address');
+        }
+
+        console.log('Generating OTP for unregistered user...');
+        // Generate OTP without admin_id for unregistered users
+        const otpResult = await OTPService.generateOTPForUnregistered(
+          identifier,
+          deviceInfo
+        );
+
+        console.log('OTP generated successfully for unregistered user:', {
+          processId: otpResult.processId,
+          userTimezone: otpResult.userTimezone
+        });
+
+        console.log('Attempting to send email to unregistered user:', identifier);
+        // Send email with device info
+        await EmailService.sendOTP(identifier, otpResult.otp, deviceInfo?.deviceName);
+        console.log('Email sent successfully to unregistered user');
+
+        return {
+          success: true,
+          message: 'OTP sent successfully to unregistered email',
+          email: identifier,
+          processId: otpResult.processId,
+          expiresAt: otpResult.expiresAt,
+          userTimezone: otpResult.userTimezone
+        };
+      }
+
+      // EXISTING FLOW FOR REGISTERED USERS
+      console.log('Processing registered user OTP request');
       const admin = await SystemAdminDetails.findByLoginIdentifier(identifier);
       console.log('Admin found:', admin ? 'Yes' : 'No');
 
@@ -29,9 +67,7 @@ class systemAuthOTPService {
       const otpResult = await OTPService.generateOTP(admin.admin_id, admin.email, deviceInfo);
       console.log('OTP generated successfully:', {
         processId: otpResult.processId,
-        otp: otpResult.otp,
-        deviceId: otpResult.deviceId,
-        deviceName: otpResult.deviceName
+        userTimezone: otpResult.userTimezone
       });
 
       console.log('Attempting to send email to:', admin.email);
@@ -45,7 +81,8 @@ class systemAuthOTPService {
         adminId: admin.admin_id,
         email: admin.email,
         processId: otpResult.processId,
-        expiresIn: parseInt(process.env.OTP_EXPIRY_MINUTES || 5)  // Remove deviceId and deviceName
+        expiresAt: otpResult.expiresAt,
+        userTimezone: otpResult.userTimezone
       };
     } catch (error) {
       console.error('Error in sendOTP:', error.message);
@@ -54,11 +91,48 @@ class systemAuthOTPService {
     }
   }
 
-  static async verifyOTP(identifier, otp, processId = null, deviceInfo = null) {
+  static async verifyOTP(identifier, otp, processId = null, deviceInfo = null, isUnregistered = false) {
     try {
-      console.log('verifyOTP called with:', { identifier, otp, processId, deviceInfo });
+      console.log('verifyOTP called with:', { identifier, otp, processId, deviceInfo, isUnregistered });
 
-      // Find user by identifier
+      // For unregistered users - STRICT EMAIL VALIDATION FLOW
+      if (isUnregistered === true) {
+        console.log('Verifying OTP for unregistered user');
+
+        // STRICT VALIDATION: Must be a valid email for unregistered users
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(identifier)) {
+          throw new Error('For unregistered users, identifier must be a valid email address');
+        }
+
+        console.log('Verifying OTP for unregistered user with params:', {
+          email: identifier,
+          otp,
+          processId
+        });
+
+        // Verify OTP for unregistered user
+        const result = await OTPService.verifyOTPForUnregistered(
+          identifier,
+          otp,
+          processId,
+          deviceInfo
+        );
+
+        console.log('OTP verification result for unregistered user:', result);
+
+        return {
+          success: true,
+          message: 'OTP verified successfully for unregistered email',
+          email: identifier,
+          processId: result.processId,
+          verifiedAt: result.verifiedAt,
+          userTimezone: result.userTimezone
+        };
+      }
+
+      // EXISTING FLOW FOR REGISTERED USERS
+      console.log('Verifying OTP for registered user');
       const admin = await SystemAdminDetails.findByLoginIdentifier(identifier);
       console.log('Admin found:', admin ? 'Yes' : 'No');
 
@@ -95,15 +169,17 @@ class systemAuthOTPService {
 
       return {
         success: true,
-        message: result.message,
+        message: 'OTP verified successfully',
         adminId: admin.admin_id,
         email: admin.email,
-        processId: result.processId  // Remove deviceId and deviceName
+        processId: result.processId,
+        verifiedAt: result.verifiedAt,
+        userTimezone: result.userTimezone
       };
     } catch (error) {
       console.error('Error in verifyOTP service:', error.message);
       console.error('Error stack:', error.stack);
-      throw error; // This will be caught by the controller
+      throw error;
     }
   }
 }
