@@ -1,5 +1,5 @@
-import OTPService from './systemOTP.service.js';
-import EmailService from './systemEmail.service.js';
+import systemOTPService from './systemOTP.service.js';
+import EmailService from './email.service.js';
 import { SystemAdminDetails } from "../models/index.js"
 
 class systemAuthOTPService {
@@ -19,7 +19,7 @@ class systemAuthOTPService {
 
         console.log('Generating OTP for unregistered user...');
         // Generate OTP without admin_id for unregistered users
-        const otpResult = await OTPService.generateOTPForUnregistered(
+        const otpResult = await systemOTPService.generateOTPForUnregistered(
           identifier,
           deviceInfo
         );
@@ -64,7 +64,7 @@ class systemAuthOTPService {
 
       console.log('Generating OTP...');
       // Generate OTP with device info
-      const otpResult = await OTPService.generateOTP(admin.admin_id, admin.email, deviceInfo);
+      const otpResult = await systemOTPService.generateOTP(admin.admin_id, admin.email, deviceInfo);
       console.log('OTP generated successfully:', {
         processId: otpResult.processId,
         userTimezone: otpResult.userTimezone
@@ -112,7 +112,7 @@ class systemAuthOTPService {
         });
 
         // Verify OTP for unregistered user
-        const result = await OTPService.verifyOTPForUnregistered(
+        const result = await systemOTPService.verifyOTPForUnregistered(
           identifier,
           otp,
           processId,
@@ -157,7 +157,7 @@ class systemAuthOTPService {
       });
 
       // Verify OTP with process ID and device info
-      const result = await OTPService.verifyOTP(
+      const result = await systemOTPService.verifyOTP(
         admin.admin_id,
         admin.email,
         otp,

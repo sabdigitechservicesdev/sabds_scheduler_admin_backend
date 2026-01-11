@@ -1,10 +1,10 @@
 import { successResponse, errorResponse, successResponseWithToken } from '../utils/responseFormatter.js';
-import profileServices from '../services/systemProfile.service.js';
+import systemProfileServices from '../services/systemProfile.service.js';
 
-class profileController {
+class systemProfileController {
   static async getProfile(req, res) {
     try {
-      const profile = await profileServices.getProfile(req.user.adminId);
+      const profile = await systemProfileServices.getProfile(req.user.adminId);
 
       // Remove tokens from profile data if they exist
       let profileData = profile;
@@ -32,7 +32,7 @@ class profileController {
       const { encryptedToken } = req.body;
 
       // Validation is already done by middleware
-      const result = await profileServices.decryptToken(encryptedToken);
+      const result = await systemProfileServices.decryptToken(encryptedToken);
 
       return res.status(200).json(
         successResponseWithToken(
@@ -66,4 +66,4 @@ class profileController {
   }
 }
 
-export default profileController;
+export default systemProfileController;

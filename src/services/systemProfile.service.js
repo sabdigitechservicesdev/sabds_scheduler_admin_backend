@@ -2,7 +2,7 @@ import { SystemAdminDetails } from "../models/index.js"
 import TokenService from './token.service.js';
 import EncryptionService from './encryption.service.js';
 
-class profileServices {
+class systemProfileServices {
   static async getProfile(adminId) {
     const admin = await SystemAdminDetails.findById(adminId);
 
@@ -51,4 +51,4 @@ class profileServices {
   }
 }
 
-export default profileServices;
+export default systemProfileServices;
