@@ -93,7 +93,14 @@ class OTPService {
     try {
       // Generate OTP and unique process ID
       const otp = crypto.randomInt(100000, 999999).toString();
-      const expiresAt = new Date(Date.now() + this.otpExpiryMinutes * 60 * 1000);
+
+      // Calculate expiry time - 5 minutes from now
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + this.otpExpiryMinutes);
+
+      // Format to MySQL DATETIME format
+      const formattedExpiry = expiresAt.toISOString().slice(0, 19).replace('T', ' ');
+
       const processId = this.generateProcessId();
 
       // If device info provided, create device identifier
@@ -150,14 +157,15 @@ class OTPService {
         `INSERT INTO system_otps 
          (process_id, admin_id, email, otp_code, device_id, device_name, expires_at) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [processId, adminId, email, otp, deviceId, deviceName, expiresAt]
+        [processId, adminId, email, otp, deviceId, deviceName, formattedExpiry]
       );
 
       return {
         processId,
         otp,
         deviceId,
-        deviceName
+        deviceName,
+        expiresAt: formattedExpiry
       };
     } catch (error) {
       throw error;
@@ -170,8 +178,6 @@ class OTPService {
     const connection = await pool.getConnection();
 
     try {
-      const deviceId = deviceInfo?.deviceId || null;
-
       // ALWAYS require processId for verification
       if (!processId) {
         throw new Error('Process ID is required for OTP verification');
@@ -179,10 +185,13 @@ class OTPService {
 
       // First, check if this processId exists and get its status
       const [otpRecords] = await connection.execute(
-        `SELECT * FROM system_otps 
-       WHERE admin_id = ? AND email = ? AND process_id = ?
-       AND is_valid = 1
-       ORDER BY created_at DESC LIMIT 1`,
+        `SELECT *, 
+         CONVERT_TZ(expires_at, '+00:00', '+05:30') as expires_at_ist,
+         CONVERT_TZ(NOW(), '+00:00', '+05:30') as current_ist 
+         FROM system_otps 
+         WHERE admin_id = ? AND email = ? AND process_id = ?
+         AND is_valid = 1
+         ORDER BY created_at DESC LIMIT 1`,
         [adminId, email, processId]
       );
 
@@ -197,11 +206,11 @@ class OTPService {
         throw new Error('This OTP has already been used. Please request a new OTP.');
       }
 
-      // Check if OTP is expired
-      const currentTime = new Date();
-      const expiresAt = new Date(otpRecord.expires_at);
+      // Check if OTP is expired - compare IST times
+      const currentIST = new Date(otpRecord.current_ist);
+      const expiresAtIST = new Date(otpRecord.expires_at_ist);
 
-      if (currentTime > expiresAt) {
+      if (currentIST > expiresAtIST) {
         // Mark OTP as invalid when expired
         await connection.execute(
           `UPDATE system_otps 
@@ -243,7 +252,7 @@ class OTPService {
       // OTP is valid - mark as verified and reset failed attempts
       await connection.execute(
         `UPDATE system_otps 
-       SET is_verified = 1, verified_at = NOW(), failed_attempts = 0 
+       SET is_verified = 1, verified_at = CONVERT_TZ(NOW(), '+00:00', '+05:30'), failed_attempts = 0 
        WHERE id = ?`,
         [otpRecord.id]
       );
