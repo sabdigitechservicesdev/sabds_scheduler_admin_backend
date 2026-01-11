@@ -17,6 +17,12 @@ class systemAuthOTPService {
           throw new Error('For unregistered users, identifier must be a valid email address');
         }
 
+        // Check if email already exists
+        const existingEmail = await SystemAdminDetails.checkEmailExists(identifier);
+        if (existingEmail) {
+          throw new Error('Email already registered');
+        }
+
         console.log('Generating OTP for unregistered user...');
         // Generate OTP without admin_id for unregistered users
         const otpResult = await systemOTPService.generateOTPForUnregistered(
