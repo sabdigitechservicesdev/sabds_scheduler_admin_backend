@@ -525,84 +525,25 @@ class OTPService {
     }
   }
 
-  // Modified cleanup method to handle device timezone-based expiry
   async cleanExpiredOTPs() {
     const connection = await pool.getConnection();
     try {
-      // Get all unexpired OTPs to check individually
-      const [allOTPs] = await connection.execute(
-        `SELECT id, expires_at, device_id, ip_address FROM system_otps 
-         WHERE is_valid = 1 AND is_verified = 0`
+      // Get current time using TimezoneHelper in default timezone (Asia/Kolkata)
+      const currentTime = TimezoneHelper.getCurrentTimeInTimezone('Asia/Kolkata');
+      const currentTimeFormatted = TimezoneHelper.toMySQLDateTime(currentTime);
+
+      console.log(`[OTP Cleanup] Current time (Asia/Kolkata): ${currentTimeFormatted}`);
+
+      const [result] = await connection.execute(
+        `DELETE FROM system_otps WHERE expires_at < ?`,
+        [currentTimeFormatted]
       );
 
-      let expiredCount = 0;
+      console.log(`[OTP Cleanup] Deleted ${result.affectedRows} expired OTPs`);
+      return result.affectedRows;
 
-      for (const otpRecord of allOTPs) {
-        // Extract IP from device_id or use default
-        let ipAddress = null;
-        if (otpRecord.device_id && otpRecord.device_id.startsWith('device_')) {
-          // Try to extract IP from device_id or use stored IP
-          ipAddress = otpRecord.ip_address || null;
-        }
-
-        // Check if expired using device's timezone
-        const isExpired = TimezoneHelper.isExpired(
-          otpRecord.expires_at,
-          ipAddress
-        );
-
-        if (isExpired) {
-          await connection.execute(
-            `UPDATE system_otps SET is_valid = 0 WHERE id = ?`,
-            [otpRecord.id]
-          );
-          expiredCount++;
-        }
-      }
-
-      // Also clean verified OTPs older than 24 hours
-      // Use default timezone for this cleanup since it's just old data removal
-      const twentyFourHoursAgo = moment().subtract(24, 'hours');
-      const formattedTwentyFourHoursAgo = twentyFourHoursAgo.format('YYYY-MM-DD HH:mm:ss');
-
-      const [oldOTPs] = await connection.execute(
-        `DELETE FROM system_otps 
-         WHERE (is_verified = 1 OR is_valid = 0) 
-         AND created_at < ?`,
-        [formattedTwentyFourHoursAgo]
-      );
-
-      console.log(`[OTP Cleanup] Expired: ${expiredCount}, Old: ${oldOTPs.affectedRows}`);
-
-      return {
-        expiredRemoved: expiredCount,
-        oldRemoved: oldOTPs.affectedRows
-      };
     } catch (error) {
       console.error('[OTP Cleanup] Error:', error);
-      throw error;
-    } finally {
-      connection.release();
-    }
-  }
-
-  async getOTPStats() {
-    const connection = await pool.getConnection();
-    try {
-      const [stats] = await connection.execute(
-        `SELECT 
-          COUNT(*) as total_otps,
-          SUM(CASE WHEN is_verified = 1 THEN 1 ELSE 0 END) as verified_otps,
-          SUM(CASE WHEN is_verified = 0 AND is_valid = 1 THEN 1 ELSE 0 END) as active_otps,
-          SUM(CASE WHEN is_valid = 0 THEN 1 ELSE 0 END) as invalid_otps,
-          SUM(CASE WHEN admin_id IS NULL THEN 1 ELSE 0 END) as unregistered_otps,
-          SUM(CASE WHEN admin_id IS NOT NULL THEN 1 ELSE 0 END) as registered_otps
-         FROM system_otps`
-      );
-
-      return stats[0];
-    } catch (error) {
-      console.error('Error getting OTP stats:', error);
       throw error;
     } finally {
       connection.release();
