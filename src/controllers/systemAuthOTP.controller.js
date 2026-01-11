@@ -8,6 +8,7 @@ class systemAuthOTPController {
 
       const result = await systemAuthOTPService.sendOTP(
         identifier,
+        req.deviceInfo,
         isUnregistered
       );
 
@@ -60,6 +61,7 @@ class systemAuthOTPController {
         identifier,
         otp,
         processId,
+        req.deviceInfo,
         isUnregistered
       );
 
