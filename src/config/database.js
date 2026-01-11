@@ -1,6 +1,6 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
-import OTPService from '../services/systemOTP.service.js';
+import systemOTPService from '../services/systemOTP.service.js';
 
 dotenv.config();
 
@@ -34,7 +34,7 @@ const testConnection = async () => {
 // Run OTP cleanup job
 const runOTPCleanup = async () => {
   try {
-    await OTPService.cleanExpiredOTPs();
+    await systemOTPService.cleanExpiredOTPs();
   } catch (err) {
     console.error('❌ OTP cleanup failed:', err.message);
   }

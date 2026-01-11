@@ -115,6 +115,18 @@ class SystemAdminDetails {
     return rows[0] || null;
   }
 
+  static async checkEmailExists(email) {
+    const [rows] = await pool.execute(
+      `SELECT ad.admin_id 
+       FROM system_admin_details ad
+       LEFT JOIN system_admin_credentials ac ON ad.admin_id = ac.admin_id
+       WHERE ad.email = ? 
+         AND ac.is_deleted = 0`,
+      [email]
+    );
+    return rows[0] || null;
+  }
+
 }
 
 export default SystemAdminDetails;

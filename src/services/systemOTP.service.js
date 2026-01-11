@@ -3,7 +3,7 @@ import pool from '../config/database.js';
 import TimezoneHelper from '../utils/timezoneHelper.js';
 import moment from 'moment-timezone';
 
-class OTPService {
+class systemOTPService {
   constructor() {
     this.otpExpiryMinutes = parseInt(process.env.OTP_EXPIRY_MINUTES || 5);
     this.otpLength = parseInt(process.env.OTP_LENGTH) || 6;
@@ -564,4 +564,4 @@ class OTPService {
   }
 }
 
-export default new OTPService();
+export default new systemOTPService();

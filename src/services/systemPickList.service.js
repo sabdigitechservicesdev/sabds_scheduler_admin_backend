@@ -1,9 +1,6 @@
 import pool from '../config/database.js';
 
-class PicklistService {
-
-
-
+class systemPicklistService {
 
   static async getAllAdminRoles() {
     try {
@@ -15,14 +12,11 @@ class PicklistService {
 
       return rows;
     } catch (error) {
-      console.error('Error in PicklistService.getAllAdminRoles:', error);
+      console.error('Error in systemPicklistService.getAllAdminRoles:', error);
       throw new Error('Failed to fetch admin roles');
     }
   }
 
-
-
-
 }
 
-export default PicklistService;
+export default systemPicklistService;
