@@ -6,23 +6,8 @@ class systemAuthOTPController {
     try {
       const { identifier, isUnregistered = false } = req.body;
 
-      // Validate request for unregistered users
-      if (isUnregistered === true) {
-        // For unregistered users, identifier must be a valid email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(identifier)) {
-          return res.status(400).json(
-            errorResponse(
-              'For unregistered users, identifier must be a valid email address',
-              null
-            )
-          );
-        }
-      }
-
       const result = await systemAuthOTPService.sendOTP(
         identifier,
-        req.deviceInfo,
         isUnregistered
       );
 
@@ -71,25 +56,10 @@ class systemAuthOTPController {
     try {
       const { identifier, otp, processId, isUnregistered = false } = req.body;
 
-      // Validate request for unregistered users
-      if (isUnregistered === true) {
-        // For unregistered users, identifier must be a valid email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(identifier)) {
-          return res.status(400).json(
-            errorResponse(
-              'For unregistered users, identifier must be a valid email address',
-              null
-            )
-          );
-        }
-      }
-
       const result = await systemAuthOTPService.verifyOTP(
         identifier,
         otp,
         processId,
-        req.deviceInfo,
         isUnregistered
       );
 
@@ -103,7 +73,6 @@ class systemAuthOTPController {
               processId: result.processId,
               verifiedAt: result.verifiedAt,
               verified: true,
-              userTimezone: result.userTimezone,
               userType: 'unregistered'
             }
           )
@@ -120,7 +89,6 @@ class systemAuthOTPController {
             processId: result.processId,
             verifiedAt: result.verifiedAt,
             verified: true,
-            userTimezone: result.userTimezone,
             userType: 'registered'
           }
         )
