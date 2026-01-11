@@ -1,10 +1,10 @@
-import authServices from "../services/systemAuthOTP.service.js";
+import systemAuthOTPService from "../services/systemAuthOTP.service.js";
 import { successResponse, errorResponse } from '../utils/responseFormatter.js';
 
-class authController {
+class systemAuthOTPController {
   static async sendOTP(req, res) {
     try {
-      const result = await authServices.sendOTP(
+      const result = await systemAuthOTPService.sendOTP(
         req.body.identifier,
         req.deviceInfo // Make sure you're passing device info from middleware
       );
@@ -34,7 +34,7 @@ class authController {
 
   static async verifyOTP(req, res) {
     try {
-      const result = await authServices.verifyOTP(
+      const result = await systemAuthOTPService.verifyOTP(
         req.body.identifier,
         req.body.otp,
         req.body.processId,
@@ -63,4 +63,4 @@ class authController {
   }
 }
 
-export default authController;
+export default systemAuthOTPController;

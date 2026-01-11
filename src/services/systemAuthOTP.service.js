@@ -2,7 +2,7 @@ import OTPService from './systemOTP.service.js';
 import EmailService from './systemEmail.service.js';
 import { SystemAdminDetails } from "../models/index.js"
 
-class authServices {
+class systemAuthOTPService {
   static async sendOTP(identifier, deviceInfo = null) {
     try {
       console.log('sendOTP called with:', { identifier, deviceInfo });
@@ -108,4 +108,4 @@ class authServices {
   }
 }
 
-export default authServices;
+export default systemAuthOTPService;
